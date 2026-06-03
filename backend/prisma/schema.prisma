@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Task {
+  id            String    @id @default(uuid())
+  title         String
+  duration      Int       // in minutes
+  estimatedTime String?
+  completed     Boolean   @default(false)
+  progress      Int       @default(0)
+  timeOfDay     String?
+  dueDate       String?
+  color         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  subtasks      Subtask[]
+}
+
+model Subtask {
+  id        String   @id @default(uuid())
+  title     String
+  completed Boolean  @default(false)
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model DayProgress {
+  id             String   @id @default(uuid())
+  date           String   @unique
+  tasksCompleted Int      @default(0)
+  totalTasks     Int      @default(0)
+  streak         Int      @default(0)
+}
