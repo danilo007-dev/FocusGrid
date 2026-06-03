@@ -5,41 +5,143 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mysql"
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Char(36)
+  name         String   @db.VarChar(255)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  tasks        Task[]
+  subtasks     Subtask[]
+  goals        Goal[]
+  goalSteps    GoalStep[]
+  routines     Routine[]
+  routineSteps RoutineStep[]
+
+  @@map("users")
 }
 
 model Task {
-  id            String    @id @default(uuid())
-  title         String
-  duration      Int       // in minutes
-  estimatedTime String?
+  id            String    @id @default(uuid()) @db.Char(36)
+  userId        String    @map("user_id") @db.Char(36)
+  title         String    @db.VarChar(255)
+  duration      Int?
+  estimatedTime String?   @map("estimated_time") @db.VarChar(255)
+  scheduledDate DateTime? @map("scheduled_date") @db.Date
   completed     Boolean   @default(false)
-  progress      Int       @default(0)
-  timeOfDay     String?
-  dueDate       String?
-  color         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  completedAt   DateTime? @map("completed_at")
+  progress      Float     @default(0)
+  timeOfDay     String?   @map("time_of_day") @db.VarChar(100)
+  color         String?   @db.VarChar(100)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  subtasks      Subtask[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subtasks Subtask[]
+
+  @@index([userId])
+  @@map("tasks")
 }
 
 model Subtask {
-  id        String   @id @default(uuid())
-  title     String
+  id        String   @id @default(uuid()) @db.Char(36)
+  taskId    String   @map("task_id") @db.Char(36)
+  userId    String   @map("user_id") @db.Char(36)
+  title     String   @db.VarChar(255)
   completed Boolean  @default(false)
-  taskId    String
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@map("subtasks")
 }
 
-model DayProgress {
-  id             String   @id @default(uuid())
-  date           String   @unique
-  tasksCompleted Int      @default(0)
-  totalTasks     Int      @default(0)
-  streak         Int      @default(0)
+model Goal {
+  id             String    @id @default(uuid()) @db.Char(36)
+  userId         String    @map("user_id") @db.Char(36)
+  title          String    @db.VarChar(255)
+  description    String?   @db.Text
+  progress       Int       @default(0)
+  completed      Boolean   @default(false)
+  type           String?   @db.Text
+  scheduledDate  DateTime? @map("scheduled_date") @db.Date
+  completedSteps Int       @default(0) @map("completed_steps")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps GoalStep[]
+
+  @@index([userId])
+  @@map("goals")
 }
+
+model GoalStep {
+  id        String   @id @default(uuid()) @db.Char(36)
+  goalId    String   @map("goal_id") @db.Char(36)
+  userId    String   @map("user_id") @db.Char(36)
+  title     String   @db.VarChar(255)
+  completed Boolean  @default(false)
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@index([userId])
+  @@map("goal_steps")
+}
+
+model Routine {
+  id            String    @id @default(uuid()) @db.Char(36)
+  userId        String    @map("user_id") @db.Char(36)
+  title         String    @db.VarChar(255)
+  description   String?   @db.Text
+  icon          String?   @db.VarChar(100)
+  colorKey      String?   @map("color_key") @db.VarChar(100)
+  scheduledDate DateTime? @map("scheduled_date") @db.Date
+  isFavorite    Boolean   @default(false) @map("is_favorite")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps RoutineStep[]
+
+  @@index([userId])
+  @@map("routines")
+}
+
+model RoutineStep {
+  id         String   @id @default(uuid()) @db.Char(36)
+  routineId  String   @map("routine_id") @db.Char(36)
+  userId     String   @map("user_id") @db.Char(36)
+  title      String   @db.VarChar(255)
+  duration   String?  @db.VarChar(100)
+  completed  Boolean  @default(false)
+  position   Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  routine Routine @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([routineId])
+  @@index([userId])
+  @@map("routine_steps")
+}
+
