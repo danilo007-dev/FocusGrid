@@ -10,25 +10,11 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { HelpfulHint } from "./HelpfulHint";
 import confetti from "canvas-confetti";
+import { routinesApi, Routine as ApiRoutine } from "../api";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
-interface RoutineStep {
-  id: string;
-  title: string;
-  duration?: string;
-  completed: boolean;
-}
-
-interface Routine {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  colorKey: string;   // chave da cor escolhida
-  isFavorite: boolean;
-  steps: RoutineStep[];
-}
+type Routine = ApiRoutine;
 
 // ─── Paleta de cores ──────────────────────────────────────────────────────────
 
@@ -140,18 +126,29 @@ const INITIAL_ROUTINES: Routine[] = [
 // ─── Componente principal ──────────────────────────────────────────────────────
 
 export function Routines() {
-  const [routines, setRoutines]     = useState<Routine[]>(INITIAL_ROUTINES);
+  const [routines, setRoutines]     = useState<Routine[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showModal, setShowModal]   = useState(false);
 
   const selectedRoutine = routines.find((r) => r.id === selectedId) ?? null;
 
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
+  useEffect(() => {
+    routinesApi.list().then(({ routines: loadedRoutines }) => setRoutines(loadedRoutines)).catch(() => setRoutines([]));
+  }, []);
+
+  const toggleFavorite = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setRoutines((prev) => prev.map((r) => r.id === id ? { ...r, isFavorite: !r.isFavorite } : r));
+    const routine = routines.find((item) => item.id === id);
+    if (!routine) return;
+    const { routine: updatedRoutine } = await routinesApi.update(id, { isFavorite: !routine.isFavorite });
+    setRoutines((prev) => prev.map((item) => item.id === id ? updatedRoutine : item));
   };
 
-  const toggleStep = (routineId: string, stepId: string) => {
+  const toggleStep = async (routineId: string, stepId: string) => {
+    const routine = routines.find((item) => item.id === routineId);
+    const step = routine?.steps.find((item) => item.id === stepId);
+    if (!step) return;
+    await routinesApi.updateStep(routineId, stepId, !step.completed);
     setRoutines((prev) =>
       prev.map((r) => {
         if (r.id !== routineId) return r;
@@ -167,8 +164,15 @@ export function Routines() {
     );
   };
 
-  const addRoutine = (routine: Routine) => {
-    setRoutines((prev) => [...prev, routine]);
+  const addRoutine = async (routine: NewRoutineInput) => {
+    const { routine: createdRoutine } = await routinesApi.create({
+      title: routine.title,
+      description: routine.description ?? undefined,
+      icon: routine.icon ?? undefined,
+      colorKey: routine.colorKey ?? undefined,
+      steps: routine.steps.map((step) => ({ title: step.title, duration: step.duration })),
+    });
+    setRoutines((prev) => [...prev, createdRoutine]);
     setShowModal(false);
   };
 
@@ -330,18 +334,20 @@ export function Routines() {
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
-interface NewStep {
-  id: string;
+interface NewRoutineInput {
   title: string;
-  duration: string;
+  description: string;
+  icon: string;
+  colorKey: string;
+  steps: Array<{ title: string; duration?: string }>;
 }
 
-function NewRoutineModal({ onClose, onSave }: { onClose: () => void; onSave: (r: Routine) => void }) {
+function NewRoutineModal({ onClose, onSave }: { onClose: () => void; onSave: (r: NewRoutineInput) => void }) {
   const [title, setTitle]           = useState("");
   const [description, setDescription] = useState("");
   const [selectedIcon, setSelectedIcon] = useState("star");
   const [selectedColor, setSelectedColor] = useState("purple");
-  const [steps, setSteps]           = useState<NewStep[]>([{ id: "new-1", title: "", duration: "" }]);
+  const [steps, setSteps]           = useState<Array<{ id: string; title: string; duration: string }>>([{ id: "new-1", title: "", duration: "" }]);
   const [error, setError]           = useState("");
   const titleRef                    = useRef<HTMLInputElement>(null);
 
@@ -368,17 +374,13 @@ function NewRoutineModal({ onClose, onSave }: { onClose: () => void; onSave: (r:
     if (validSteps.length === 0) { setError("Adicione pelo menos um passo."); return; }
 
     onSave({
-      id: Date.now().toString(),
       title: title.trim(),
       description: description.trim() || "Rotina personalizada",
       icon: selectedIcon,
       colorKey: selectedColor,
-      isFavorite: false,
       steps: validSteps.map((s, i) => ({
-        id: `${Date.now()}-${i}`,
         title: s.title.trim(),
         duration: s.duration.trim() || undefined,
-        completed: false,
       })),
     });
   };

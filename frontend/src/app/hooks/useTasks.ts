@@ -6,6 +6,7 @@ export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
+    taskStore.loadTasks().catch(() => setTasks([]));
     setTasks(taskStore.getTasks());
     const unsubscribe = taskStore.subscribe(() => {
       setTasks(taskStore.getTasks());

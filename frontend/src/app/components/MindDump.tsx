@@ -138,11 +138,11 @@ export function MindDump() {
   const taRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => { if (view === "capture") setTimeout(() => taRef.current?.focus(), 150); }, [view]);
 
-  const handleTransformToTask = () => {
+  const handleTransformToTask = async () => {
     if (!captureText.trim()) return;
     const { suggestedTitle, suggestedSubtasks } = analyzeThought(captureText);
     const cols = ["#A8E6CF","#FFD3B6","#FFAAA5","#B4A7D6"];
-    taskStore.addTask({
+    await taskStore.addTask({
       title: suggestedTitle, duration: 15, estimatedTime: "15 min",
       completed: false, progress: 0, color: cols[Math.floor(Math.random()*cols.length)],
       subtasks: suggestedSubtasks.map((t,i) => ({ id:`${Date.now()}-${i}`, title:t, completed:false })),

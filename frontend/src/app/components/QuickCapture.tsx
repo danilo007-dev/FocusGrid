@@ -174,7 +174,7 @@ export function QuickCapture() {
     }
   };
 
-  const addOneTaskToStore = (taskData: {
+  const addOneTaskToStore = async (taskData: {
     title: string;
     duration: number;
     selectedTime: string;
@@ -184,7 +184,7 @@ export function QuickCapture() {
     const colors = ["#A8E6CF", "#FFD3B6", "#FFAAA5", "#B4A7D6", "#FFE5B4"];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-    taskStore.addTask({
+    await taskStore.addTask({
       title: taskData.title,
       duration: Math.max(1, taskData.duration),
       estimatedTime: formatDurationLabel(Math.max(1, taskData.duration)),
@@ -277,12 +277,12 @@ export function QuickCapture() {
     setEditingStepValue("");
   };
 
-  const handleAddTask = () => {
+  const handleAddTask = async () => {
     if (!aiSuggestion) return;
 
     const validSubtasks = editableSubtasks.map((s) => s.trim()).filter(Boolean);
 
-    addOneTaskToStore({
+    await addOneTaskToStore({
       title: aiSuggestion.task,
       duration: selectedDuration,
       selectedTime,
@@ -293,19 +293,19 @@ export function QuickCapture() {
     navigate("/dashboard");
   };
 
-  const handleAddMultipleTasks = () => {
+  const handleAddMultipleTasks = async () => {
     if (!multiTaskDrafts || multiTaskDrafts.length === 0) return;
 
-    multiTaskDrafts.forEach((draft) => {
+    for (const draft of multiTaskDrafts) {
       const validSubtasks = draft.subtasks.map((s) => s.trim()).filter(Boolean);
-      addOneTaskToStore({
+      await addOneTaskToStore({
         title: draft.title,
         duration: draft.selectedDuration,
         selectedTime: draft.selectedTime,
         selectedDate: draft.selectedDate,
         subtasks: validSubtasks.length ? validSubtasks : ["Começar"],
       });
-    });
+    }
 
     navigate("/dashboard");
   };

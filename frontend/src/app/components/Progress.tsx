@@ -8,6 +8,7 @@ export function Progress() {
   const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
+    taskStore.loadTasks().catch(() => undefined);
     setCompletedCount(taskStore.getCompletedTasksCount());
     setTotalCount(taskStore.getTotalTasksCount());
 

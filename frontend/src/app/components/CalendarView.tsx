@@ -49,6 +49,7 @@ export function CalendarView() {
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
+    taskStore.loadTasks().catch(() => setTasks([]));
     setTasks(taskStore.getTasks());
     const unsubscribe = taskStore.subscribe(() => setTasks(taskStore.getTasks()));
     return unsubscribe;

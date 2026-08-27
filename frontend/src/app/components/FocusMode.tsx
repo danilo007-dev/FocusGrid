@@ -20,9 +20,10 @@ export function FocusMode() {
 
   useEffect(() => {
     if (!taskId) return;
-    const currentTask = taskStore.getTask(taskId);
-    setTask(currentTask || null);
-    if (currentTask) setTimeRemaining(currentTask.duration * 60);
+    taskStore.loadTask(taskId).then((currentTask) => {
+      setTask(currentTask);
+      if (currentTask) setTimeRemaining((currentTask.duration ?? 0) * 60);
+    }).catch(() => setTask(null));
     const unsubscribe = taskStore.subscribe(() => {
       const updatedTask = taskStore.getTask(taskId);
       setTask(updatedTask || null);

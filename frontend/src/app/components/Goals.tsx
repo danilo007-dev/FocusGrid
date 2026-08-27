@@ -1,34 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Heart, Plus, Sparkles, Target, Trash2, X } from "lucide-react";
+import { goalsApi, Goal as ApiGoal } from "../api";
 
-interface Goal {
-  id: string;
-  title: string;
-  dream: string;
-  createdAt: string;
-}
-
-const INITIAL_GOALS: Goal[] = [
-  {
-    id: "goal-1",
-    title: "Entrar na faculdade",
-    dream: "Quero construir uma carreira com mais liberdade e estabilidade.",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "goal-2",
-    title: "Cuidar melhor da saúde",
-    dream: "Quero ter mais energia no dia a dia e me sentir bem no meu corpo.",
-    createdAt: new Date().toISOString(),
-  },
-];
+type Goal = ApiGoal;
 
 export function Goals() {
-  const [goals, setGoals] = useState<Goal[]>(INITIAL_GOALS);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [quickGoal, setQuickGoal] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(INITIAL_GOALS[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    goalsApi.list().then(({ goals: loadedGoals }) => {
+      setGoals(loadedGoals);
+      setSelectedId(loadedGoals[0]?.id ?? null);
+    }).catch(() => setGoals([]));
+  }, []);
 
   const selectedGoal = goals.find((goal) => goal.id === selectedId) ?? null;
 
@@ -49,30 +37,25 @@ export function Goals() {
     return new Date(latest.createdAt).toLocaleDateString("pt-BR");
   }, [goals]);
 
-  const addGoal = (input: { title: string; dream: string }) => {
+  const addGoal = async (input: { title: string; dream: string }) => {
     const title = input.title.trim();
     const dream = input.dream.trim();
     if (!title) return;
 
-    const newGoal: Goal = {
-      id: `goal-${Date.now()}`,
-      title,
-      dream: dream || "Sem descrição por enquanto.",
-      createdAt: new Date().toISOString(),
-    };
-
-    setGoals((prev) => [newGoal, ...prev]);
-    setSelectedId(newGoal.id);
+    const { goal } = await goalsApi.create({ title, dream });
+    setGoals((prev) => [goal, ...prev]);
+    setSelectedId(goal.id);
   };
 
-  const addQuickGoal = () => {
+  const addQuickGoal = async () => {
     const value = quickGoal.trim();
     if (!value) return;
-    addGoal({ title: value, dream: "Sem descrição por enquanto." });
+    await addGoal({ title: value, dream: "Sem descrição por enquanto." });
     setQuickGoal("");
   };
 
-  const deleteGoal = (goalId: string) => {
+  const deleteGoal = async (goalId: string) => {
+    await goalsApi.remove(goalId);
     setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
   };
 
@@ -230,7 +213,7 @@ export function Goals() {
           <NewGoalModal
             onClose={() => setShowModal(false)}
             onSave={(goalInput) => {
-              addGoal(goalInput);
+              addGoal(goalInput).catch(() => undefined);
               setShowModal(false);
             }}
           />

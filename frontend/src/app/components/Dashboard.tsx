@@ -13,6 +13,7 @@ export function Dashboard() {
   const today = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
+    taskStore.loadTasks().catch(() => setTasks([]));
     setTasks(taskStore.getTasks());
     const unsubscribe = taskStore.subscribe(() => {
       setTasks(taskStore.getTasks());

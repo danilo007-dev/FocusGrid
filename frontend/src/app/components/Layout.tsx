@@ -1,14 +1,19 @@
 import { Outlet, useLocation, useNavigate } from "react-router";
 import { Home, MessageCircle, Plus, TrendingUp, Repeat, Target, Calendar, Wind, Settings } from "lucide-react";
 import { motion } from "motion/react";
+import { useAuth } from "../auth";
+import { AuthPage } from "./AuthPage";
 
 const appBrand = new URL("../../../LOGO/escrita-logo_FocusGrid.png?v=1", import.meta.url).href;
 
 export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, loading, logout } = useAuth();
 
   if (location.pathname === "/") return <Outlet />;
+  if (loading) return <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-500">Carregando...</div>;
+  if (!user) return <AuthPage />;
 
   const navItems = [
     { path: "/dashboard",  icon: Home,          label: "Hoje",        section: "main"     },
@@ -72,6 +77,7 @@ export function Layout() {
         </nav>
 
         <div className="px-6 py-4 border-t border-gray-200 flex-shrink-0">
+          <button onClick={logout} className="w-full text-left text-xs text-gray-500 hover:text-gray-900 mb-3">Sair da conta</button>
           <div className="bg-blue-50 rounded-lg p-3">
             <p className="text-xs text-blue-900 font-medium">💡 Dica</p>
             <p className="text-xs text-blue-700 mt-1">Foque em uma tarefa por vez para melhores resultados</p>

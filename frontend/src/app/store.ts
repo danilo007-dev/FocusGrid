@@ -1,60 +1,9 @@
 import { Task } from "./types";
+import { tasksApi } from "./api";
 
 // Simple in-memory store for demo purposes
 class TaskStore {
-  private readonly today = new Date().toISOString().slice(0, 10);
-
-  private tasks: Task[] = [
-    {
-      id: "1",
-      title: "Estudar biologia",
-      duration: 30,
-      estimatedTime: "30 min",
-      completed: false,
-      progress: 0,
-      timeOfDay: "09:00",
-      dueDate: this.today,
-      color: "#A8E6CF",
-      subtasks: [
-        { id: "1-1", title: "Abrir o caderno", completed: false },
-        { id: "1-2", title: "Ler capítulo 3", completed: false },
-        { id: "1-3", title: "Fazer resumo", completed: false },
-      ],
-    },
-    {
-      id: "2",
-      title: "Comprar presente",
-      duration: 15,
-      estimatedTime: "15 min",
-      completed: false,
-      progress: 0,
-      timeOfDay: "14:00",
-      dueDate: this.today,
-      color: "#FFD3B6",
-      subtasks: [
-        { id: "2-1", title: "Pensar em ideias", completed: false },
-        { id: "2-2", title: "Pesquisar online", completed: false },
-        { id: "2-3", title: "Fazer o pedido", completed: false },
-      ],
-    },
-    {
-      id: "3",
-      title: "Trabalho de história",
-      duration: 45,
-      estimatedTime: "45 min",
-      completed: false,
-      progress: 0,
-      timeOfDay: "16:00",
-      dueDate: this.today,
-      color: "#FFAAA5",
-      subtasks: [
-        { id: "3-1", title: "Abrir documento", completed: false },
-        { id: "3-2", title: "Escrever introdução", completed: false },
-        { id: "3-3", title: "Pesquisar tema", completed: false },
-        { id: "3-4", title: "Adicionar referências", completed: false },
-      ],
-    },
-  ];
+  private tasks: Task[] = [];
 
   private listeners: Array<() => void> = [];
 
@@ -77,48 +26,48 @@ class TaskStore {
     return this.tasks.find((t) => t.id === id);
   }
 
-  addTask(task: Omit<Task, "id">) {
-    const newTask: Task = {
-      ...task,
-      id: Date.now().toString(),
-    };
+  async loadTasks() {
+    const result = await tasksApi.list();
+    this.tasks = result.tasks;
+    this.notify();
+    return this.tasks;
+  }
+
+  async loadTask(id: string) {
+    const result = await tasksApi.get(id);
+    const index = this.tasks.findIndex((task) => task.id === id);
+    if (index === -1) this.tasks.push(result.task);
+    else this.tasks[index] = result.task;
+    this.notify();
+    return result.task;
+  }
+
+  async addTask(task: Omit<Task, "id">) {
+    const { task: newTask } = await tasksApi.create(task);
     this.tasks.push(newTask);
     this.notify();
     return newTask;
   }
 
-  updateTask(id: string, updates: Partial<Task>) {
-    const index = this.tasks.findIndex((t) => t.id === id);
-    if (index !== -1) {
-      this.tasks[index] = { ...this.tasks[index], ...updates };
-      this.notify();
-    }
+  async updateTask(id: string, updates: Partial<Task>) {
+    const { task } = await tasksApi.update(id, updates);
+    const index = this.tasks.findIndex((item) => item.id === id);
+    if (index !== -1) this.tasks[index] = task;
+    else this.tasks.push(task);
+    this.notify();
+    return task;
   }
 
-  toggleSubtask(taskId: string, subtaskId: string) {
-    const task = this.tasks.find((t) => t.id === taskId);
-    if (task) {
-      const subtask = task.subtasks.find((s) => s.id === subtaskId);
-      if (subtask) {
-        subtask.completed = !subtask.completed;
-        const completedCount = task.subtasks.filter((s) => s.completed).length;
-        task.progress = (completedCount / task.subtasks.length) * 100;
-        if (task.progress === 100) {
-          task.completed = true;
-        }
-        this.notify();
-      }
-    }
+  async toggleSubtask(taskId: string, subtaskId: string) {
+    const task = this.tasks.find((item) => item.id === taskId);
+    const subtask = task?.subtasks.find((item) => item.id === subtaskId);
+    if (!subtask) return;
+    await tasksApi.updateSubtask(taskId, subtaskId, !subtask.completed);
+    return this.loadTask(taskId);
   }
 
-  completeTask(id: string) {
-    const task = this.tasks.find((t) => t.id === id);
-    if (task) {
-      task.completed = true;
-      task.progress = 100;
-      task.subtasks.forEach((s) => (s.completed = true));
-      this.notify();
-    }
+  async completeTask(id: string) {
+    return this.updateTask(id, { completed: true, progress: 100 });
   }
 
   getCompletedTasksCount(): number {

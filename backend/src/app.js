@@ -3,6 +3,9 @@ import cors from "cors";
 import express from "express";
 import { prisma } from "./config/prisma.js";
 import { authRouter } from "./routes/auth.routes.js";
+import { taskRouter } from "./routes/task.routes.js";
+import { goalRouter } from "./routes/goal.routes.js";
+import { routineRouter } from "./routes/routine.routes.js";
 
 const app = express();
 
@@ -11,6 +14,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use("/api/auth", authRouter);
+app.use("/api/tasks", taskRouter);
+app.use("/api/goals", goalRouter);
+app.use("/api/routines", routineRouter);
 
 app.get("/", (req, res) => {
   res.json({ name: "FocusGrid API", status: "online" });
@@ -33,7 +39,7 @@ app.get("/health", async (req, res) => {
 });
 
 app.use((error, req, res, next) => {
-  console.error(error);
+  if ((error.statusCode ?? 500) >= 500) console.error(error);
   res.status(error.statusCode ?? 500).json({
     error: error.statusCode ? error.message : "Erro interno do servidor"
   });
