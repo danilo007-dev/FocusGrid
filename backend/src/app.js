@@ -39,10 +39,14 @@ app.get("/health", async (req, res) => {
 });
 
 app.use((error, req, res, next) => {
-  if ((error.statusCode ?? 500) >= 500) console.error(error);
-  res.status(error.statusCode ?? 500).json({
-    error: error.statusCode ? error.message : "Erro interno do servidor"
-  });
+  const statusCode = error.statusCode ?? 500;
+  if (statusCode >= 500) {
+    console.error("[ERROR]", error.message, error.stack);
+  } else {
+    console.warn(`[${statusCode}]`, error.message);
+  }
+  const message = statusCode >= 500 ? "Erro interno do servidor" : error.message;
+  res.status(statusCode).json({ error: message });
 });
 
 export { app };

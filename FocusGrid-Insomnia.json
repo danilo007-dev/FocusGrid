@@ -1,0 +1,354 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-08-31T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v9.3.3",
+  "resources": [
+    {
+      "_id": "wrk_focusgrid",
+      "_type": "workspace",
+      "name": "FocusGrid API",
+      "description": "API para gerenciamento de tarefas, metas e rotinas"
+    },
+    {
+      "_id": "env_production",
+      "_type": "environment",
+      "parentId": "wrk_focusgrid",
+      "name": "Production",
+      "data": {
+        "base_url": "http://localhost:3000/api",
+        "token": ""
+      }
+    },
+    {
+      "_id": "env_development",
+      "_type": "environment",
+      "parentId": "wrk_focusgrid",
+      "name": "Development",
+      "data": {
+        "base_url": "http://localhost:3000/api",
+        "token": ""
+      }
+    },
+    {
+      "_id": "folder_auth",
+      "_type": "request_group",
+      "parentId": "wrk_focusgrid",
+      "name": "Autenticação"
+    },
+    {
+      "_id": "req_register",
+      "_type": "request",
+      "parentId": "folder_auth",
+      "name": "Registrar",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/register",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@example.com\",\n  \"password\": \"senha-segura-123\"\n}"
+      }
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "folder_auth",
+      "name": "Entrar",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"joao@example.com\",\n  \"password\": \"senha-segura-123\"\n}"
+      }
+    },
+    {
+      "_id": "req_me",
+      "_type": "request",
+      "parentId": "folder_auth",
+      "name": "Obter dados atuais",
+      "method": "GET",
+      "url": "{{ base_url }}/auth/me",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ]
+    },
+    {
+      "_id": "folder_tasks",
+      "_type": "request_group",
+      "parentId": "wrk_focusgrid",
+      "name": "Tarefas"
+    },
+    {
+      "_id": "req_list_tasks",
+      "_type": "request",
+      "parentId": "folder_tasks",
+      "name": "Listar tarefas",
+      "method": "GET",
+      "url": "{{ base_url }}/tasks",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_create_task",
+      "_type": "request",
+      "parentId": "folder_tasks",
+      "name": "Criar tarefa",
+      "method": "POST",
+      "url": "{{ base_url }}/tasks",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Estudar Biologia\",\n  \"duration\": 30,\n  \"dueDate\": \"2026-08-31\",\n  \"timeOfDay\": \"09:00\",\n  \"color\": \"#A8E6CF\",\n  \"subtasks\": [\n    { \"title\": \"Abrir caderno\" },\n    { \"title\": \"Ler capítulo\" }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_get_task",
+      "_type": "request",
+      "parentId": "folder_tasks",
+      "name": "Obter tarefa",
+      "method": "GET",
+      "url": "{{ base_url }}/tasks/{{ task_id }}",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_update_task",
+      "_type": "request",
+      "parentId": "folder_tasks",
+      "name": "Atualizar tarefa",
+      "method": "PATCH",
+      "url": "{{ base_url }}/tasks/{{ task_id }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"completed\": true\n}"
+      }
+    },
+    {
+      "_id": "req_update_subtask",
+      "_type": "request",
+      "parentId": "folder_tasks",
+      "name": "Atualizar subtarefa",
+      "method": "PATCH",
+      "url": "{{ base_url }}/tasks/{{ task_id }}/subtasks/{{ subtask_id }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"completed\": true\n}"
+      }
+    },
+    {
+      "_id": "folder_goals",
+      "_type": "request_group",
+      "parentId": "wrk_focusgrid",
+      "name": "Metas"
+    },
+    {
+      "_id": "req_list_goals",
+      "_type": "request",
+      "parentId": "folder_goals",
+      "name": "Listar metas",
+      "method": "GET",
+      "url": "{{ base_url }}/goals",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_create_goal",
+      "_type": "request",
+      "parentId": "folder_goals",
+      "name": "Criar meta",
+      "method": "POST",
+      "url": "{{ base_url }}/goals",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Entrar na faculdade\",\n  \"dream\": \"Conseguir bolsa integral em uma universidade pública\",\n  \"steps\": [\n    { \"title\": \"Pesquisar cursos\" },\n    { \"title\": \"Preparar para ENEM\" }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_update_goal_step",
+      "_type": "request",
+      "parentId": "folder_goals",
+      "name": "Concluir passo da meta",
+      "method": "PATCH",
+      "url": "{{ base_url }}/goals/{{ goal_id }}/steps/{{ step_id }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"completed\": true\n}"
+      }
+    },
+    {
+      "_id": "req_delete_goal",
+      "_type": "request",
+      "parentId": "folder_goals",
+      "name": "Excluir meta",
+      "method": "DELETE",
+      "url": "{{ base_url }}/goals/{{ goal_id }}",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ]
+    },
+    {
+      "_id": "folder_routines",
+      "_type": "request_group",
+      "parentId": "wrk_focusgrid",
+      "name": "Rotinas"
+    },
+    {
+      "_id": "req_list_routines",
+      "_type": "request",
+      "parentId": "folder_routines",
+      "name": "Listar rotinas",
+      "method": "GET",
+      "url": "{{ base_url }}/routines",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_create_routine",
+      "_type": "request",
+      "parentId": "folder_routines",
+      "name": "Criar rotina",
+      "method": "POST",
+      "url": "{{ base_url }}/routines",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Rotina Matinal\",\n  \"description\": \"Comece o dia com energia e foco\",\n  \"icon\": \"sun\",\n  \"colorKey\": \"green\",\n  \"steps\": [\n    { \"title\": \"Beber água\", \"duration\": \"1 min\" },\n    { \"title\": \"Alongamento\", \"duration\": \"5 min\" },\n    { \"title\": \"Tomar café da manhã\", \"duration\": \"15 min\" }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_update_routine",
+      "_type": "request",
+      "parentId": "folder_routines",
+      "name": "Atualizar rotina (favoritar)",
+      "method": "PATCH",
+      "url": "{{ base_url }}/routines/{{ routine_id }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"isFavorite\": true\n}"
+      }
+    },
+    {
+      "_id": "req_update_routine_step",
+      "_type": "request",
+      "parentId": "folder_routines",
+      "name": "Concluir passo da rotina",
+      "method": "PATCH",
+      "url": "{{ base_url }}/routines/{{ routine_id }}/steps/{{ step_id }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"completed\": true\n}"
+      }
+    }
+  ]
+}
