@@ -2,13 +2,24 @@ import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { taskStore } from "../store";
 import { Task } from "../types";
+import { useAuth } from "../auth";
 import { Clock, CheckCircle2, Circle, ChevronRight, Sun, Sunset, Moon } from "lucide-react";
 import { motion } from "motion/react";
 import { HelpfulHint } from "./HelpfulHint";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -66,16 +77,64 @@ export function Dashboard() {
   };
 
   const { morning, afternoon, evening, noTime } = categorizeTasks();
+  const profileInitials = user?.name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold text-gray-900">{getGreeting()}</h1>
-        <p className="text-gray-600 mt-1">
-          {incompleteTasks.length === 0
-            ? "Você completou todas as tarefas de hoje! 🎉"
-            : `${incompleteTasks.length} ${incompleteTasks.length === 1 ? "tarefa" : "tarefas"} para hoje`}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold text-gray-900">
+            {getGreeting()}, {user?.name}!
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {incompleteTasks.length === 0
+              ? "Você completou todas as tarefas de hoje! 🎉"
+              : `${incompleteTasks.length} ${incompleteTasks.length === 1 ? "tarefa" : "tarefas"} para hoje`}
+          </p>
+        </div>
+
+        {user && (
+          <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center rounded-xl p-1.5 text-left transition-colors hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                aria-label="Abrir informações do perfil"
+              >
+                <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 text-sm font-semibold text-purple-700 ring-4 ring-white/60">
+                  {profileInitials || "FG"}
+                </div>
+              </button>
+            </DialogTrigger>
+            <DialogContent className="rounded-2xl border-gray-200 p-6 sm:max-w-sm">
+              <DialogHeader>
+                <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-purple-100 text-xl font-semibold text-purple-700">
+                  {profileInitials || "FG"}
+                </div>
+                <DialogTitle className="text-center text-xl text-gray-900">Seu perfil</DialogTitle>
+                <DialogDescription className="text-center text-gray-500">
+                  Informações da sua conta no FocusGrid.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 rounded-xl bg-gray-50 p-4">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-400">Nome</p>
+                  <p className="mt-1 text-sm font-medium text-gray-900">{user.name}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-400">E-mail</p>
+                  <p className="mt-1 break-all text-sm text-gray-700">{user.email}</p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {totalCount > 0 && (
