@@ -9,7 +9,9 @@
   "scripts": {
     "test": "node test-integration.js",
     "test:watch": "nodemon test-integration.js",
+    "predev": "npm run generate",
     "dev": "nodemon src/server.js",
+    "prestart": "npm run generate",
     "start": "node src/server.js",
     "generate": "prisma generate",
     "validate": "prisma validate"
