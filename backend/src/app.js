@@ -6,6 +6,7 @@ import { authRouter } from "./routes/auth.routes.js";
 import { taskRouter } from "./routes/task.routes.js";
 import { goalRouter } from "./routes/goal.routes.js";
 import { routineRouter } from "./routes/routine.routes.js";
+import { aiRouter } from "./routes/ai.routes.js";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/goals", goalRouter);
 app.use("/api/routines", routineRouter);
+app.use("/api/ai", aiRouter);
 
 app.get("/", (req, res) => {
   res.json({ name: "FocusGrid API", status: "online" });

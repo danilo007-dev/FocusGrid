@@ -8,6 +8,7 @@
   "main": "src/server.js",
   "scripts": {
     "test": "node test-integration.js",
+    "test:ai-config": "node test-ai-service.js",
     "test:watch": "nodemon test-integration.js",
     "predev": "npm run generate",
     "dev": "nodemon src/server.js",
@@ -21,6 +22,7 @@
     "prisma": "^7.8.0"
   },
   "dependencies": {
+    "@google/genai": "^2.30.0",
     "@prisma/adapter-mariadb": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "bcryptjs": "^3.0.3",
