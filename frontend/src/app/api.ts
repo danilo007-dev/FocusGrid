@@ -91,3 +91,16 @@ export const routinesApi = {
   update: (id: string, input: Partial<Pick<Routine, "title" | "description" | "isFavorite">>) => request<{ routine: Routine }>(`/routines/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
   updateStep: (routineId: string, stepId: string, completed: boolean) => request<{ step: RoutineStep }>(`/routines/${routineId}/steps/${stepId}`, { method: "PATCH", body: JSON.stringify({ completed }) }),
 };
+
+export const aiApi = {
+  chat: (input: {
+    message: string;
+    mode?: "destravar" | "quebrar" | "meta" | "planejar";
+    context?: string;
+    history: Array<{ role: "user" | "assistant"; content: string }>;
+  }) =>
+    request<{ response: { text: string } }>("/ai/chat", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+};

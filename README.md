@@ -76,7 +76,7 @@ Observação: o projeto ainda não possui autenticação completa nem persistên
 
 ## Ferramentas adicionais
 
-- Anthropic API para o assistente de IA no frontend
+- Google Gemini via SDK oficial no backend para o assistente de IA
 - `localStorage` para persistência das configurações do usuário
 - store em memória para tarefas no MVP atual
 - Prisma migrations para estruturação do banco
@@ -118,7 +118,7 @@ npm install
 
 ## 3. Configurar variáveis de ambiente
 
-O backend possui um arquivo exemplo em `backend/.env.example`. Crie um arquivo `backend/.env` com base nele e preencha os dados do seu banco MySQL/MariaDB.
+O backend possui um arquivo exemplo em `backend/.env.example`. Crie um arquivo `backend/.env` com base nele e preencha os dados do seu banco MySQL/MariaDB e a sua chave do Gemini.
 
 Exemplo:
 
@@ -128,7 +128,11 @@ DATABASE_USER="usuario"
 DATABASE_PASSWORD="senha"
 DATABASE_NAME="db"
 DATABASE_HOST="host"
+GEMINI_API_KEY="sua-chave-do-Gemini"
+GEMINI_MODEL="gemini-flash-lite-latest"
 ```
+
+`GEMINI_API_KEY` deve existir somente em `backend/.env`. Nunca use essa chave em uma variável `VITE_*`, no frontend ou no Git. Como a chave enviada nesta conversa foi exposta, ela deve ser revogada no Google AI Studio e substituída por uma nova chave antes do uso.
 
 ## 4. Executar o frontend
 
@@ -148,6 +152,34 @@ npm run dev
 ```
 
 O backend roda em `http://localhost:3000` e expõe a rota `GET /health` para validação da conexão com o banco.
+
+## Integração de IA
+
+O frontend envia as mensagens para o backend, e o backend consulta o Gemini. O endpoint autenticado disponível é:
+
+```text
+POST /api/ai/chat
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+Exemplo de corpo:
+
+```json
+{
+	"message": "Não sei por onde começar meu trabalho de biologia.",
+	"history": []
+}
+```
+
+O modelo pode ser trocado pela variável `GEMINI_MODEL`, desde que esteja disponível no Google AI Studio. O serviço limita mensagem e histórico, não registra prompts completos e retorna erros sanitizados ao frontend.
+
+Para testar a validação de configuração sem consumir créditos:
+
+```bash
+cd backend
+npm run test:ai-config
+```
 
 ## 6. Executar o banco de dados
 
