@@ -159,6 +159,88 @@ Se você quiser validar a aplicação inteira de uma vez, mantenha o banco ativo
 
 O repositório possui um script raiz `dev:all`, mas o backend presente no código está em `backend/src/server.js`. Para a execução local mais confiável, o fluxo recomendado é iniciar o frontend com `npm run dev` na raiz e o backend com `cd backend && npm run dev`.
 
+## Deploy
+
+### Frontend — Hostinger / Apache
+
+O frontend está em `frontend/` e será publicado na subpasta `/tecti/2026/gpec14/`.
+O Vite usa esse caminho em produção e o React Router deriva dele como `basename`.
+O arquivo `frontend/public/.htaccess` é copiado para `dist` e encaminha rotas internas
+para `index.html`.
+
+Crie `frontend/.env.production` (não versionado) antes da build:
+
+```env
+VITE_API_URL=https://SEU-SERVICO.onrender.com/api
+VITE_BASE_PATH=/tecti/2026/gpec14/
+```
+
+Na raiz do repositório, execute `npm install` e `npm run build`. Transfira **o conteúdo**
+de `frontend/dist/` via FileZilla para `/tecti/2026/gpec14/` no Apache. Não envie a
+pasta `dist` como subpasta, nem `node_modules`, arquivos `.env` ou o código-fonte.
+Teste a página inicial, uma rota interna e a atualização dessa rota.
+
+### Backend — Render
+
+Crie um Web Service com Runtime `Node`, Root Directory `backend`, Build Command
+`npm ci && npm run generate` e Start Command `npm start`. A versão recomendada é
+Node `>=20.19.0`. O servidor usa `PORT` do Render e escuta em `0.0.0.0`.
+
+Configure estas variáveis no Render, substituindo os valores indicados:
+
+```env
+NODE_ENV=production
+HOST=0.0.0.0
+FRONTEND_URL=https://SEU-DOMINIO/tecti/2026/gpec14
+DATABASE_URL=mysql://usuario:senha@host:3306/banco
+DATABASE_HOST=host
+DATABASE_PORT=3306
+DATABASE_USER=usuario
+DATABASE_PASSWORD=senha
+DATABASE_NAME=banco
+JWT_SECRET=segredo-longo-aleatorio-e-exclusivo
+```
+
+Não crie `PORT` manualmente. `FRONTEND_URL` pode conter origens separadas por vírgula
+para permitir localhost durante o desenvolvimento. Configure `/health` como Health
+Check Path; a rota retorna `{ "status": "ok" }` sem expor dados sensíveis.
+
+### Banco e Prisma
+
+O backend usa Prisma Client com `@prisma/adapter-mariadb` para MySQL/MariaDB. O
+`DATABASE_URL` é necessário para `prisma generate`; as variáveis `DATABASE_HOST`,
+`DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD` e `DATABASE_NAME` são usadas
+em runtime. As migrations estão em `backend/prisma/migrations`.
+
+Após provisionar o banco de produção, execute uma vez:
+
+```bash
+cd backend
+npx prisma migrate deploy
+```
+
+Nunca use `prisma migrate reset` em produção. Não há seed configurado.
+
+### Parâmetros operacionais
+
+```text
+Frontend directory: frontend/
+Build command: npm run build (na raiz)
+Build output: frontend/dist/
+Public path: /tecti/2026/gpec14/
+Vite base: /tecti/2026/gpec14/
+React Router basename: /tecti/2026/gpec14
+.htaccess necessário: sim
+
+Backend directory: backend/
+Root Directory: backend
+Build Command: npm ci && npm run generate
+Start Command: npm start
+Health Check: /health
+Database library: Prisma + @prisma/adapter-mariadb
+Prisma migrations: sim, npx prisma migrate deploy
+```
+
 # Próximas Melhorias
 
 Algumas evoluções naturais para o projeto são:

@@ -13,6 +13,8 @@ import { MindDump } from "./components/MindDump";
 import { Settings } from "./components/Settings";
 import { NotFound } from "./components/NotFound";
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -32,4 +34,4 @@ export const router = createBrowserRouter([
       { path: "*",             Component: NotFound     },
     ],
   },
-]);
+], { basename });

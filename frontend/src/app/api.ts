@@ -1,6 +1,6 @@
 import { Task } from "./types";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
+const API_URL = (import.meta.env.VITE_API_URL ?? "/api").replace(/\/$/, "");
 
 async function request<T>(path: string, options: RequestInit = {}) {
   const token = localStorage.getItem("focusgrid_token");
